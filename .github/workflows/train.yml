@@ -1,0 +1,43 @@
+name: Neural Dialogue Training
+
+on:
+  schedule:
+    - cron: "0 18 * * *"   # daily at 6pm UTC - adjust as you like
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies (CPU-only torch)
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install requests
+
+      - name: Run one full training cycle
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GROQ_MODEL: openai/gpt-oss-120b
+          N_EXCHANGES: "6"
+          TRAIN_EPOCHS_PER_TURN: "3"
+        run: python scripts/run_cycle.py
+
+      - name: Commit updated weights and logs
+        run: |
+          git config user.name "neural-dialogue-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add models/ conversations/ state/
+          git diff --staged --quiet || git commit -m "New training cycle - $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push
+          
