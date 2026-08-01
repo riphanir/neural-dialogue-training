@@ -29,7 +29,7 @@ jobs:
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           GROQ_MODEL: openai/gpt-oss-120b
-          N_EXCHANGES: "6"
+          N_EXCHANGES: "20"
           TRAIN_EPOCHS_PER_TURN: "3"
         run: python scripts/run_cycle.py
 
